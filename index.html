@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>UniShop – University Marketplace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-brand" onclick="onLogoBrandTap()">
+    <span class="brand-icon">⚡</span>
+    <span class="brand-name">UniShop</span>
+    <span class="brand-sub">University Store</span>
+  </div>
+  <div class="search-wrapper">
+    <span class="search-icon">🔍</span>
+    <input id="searchInput" type="text" placeholder="Search products, categories…" oninput="searchProduct()">
+    <button class="search-btn" onclick="searchProduct()">Search</button>
+  </div>
+  <div class="nav-right">
+    <span id="adminBadge" class="admin-badge" onclick="openAdminPanel()" style="display:none">🔐 Admin</span>
+    <button class="cart-btn" onclick="toggleCart()">
+      🛒 Cart <span id="cartCount" class="cart-badge">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <p class="hero-label">Welcome to your campus store</p>
+    <h1 class="hero-title">Everything <em>you need</em>,<br>all in one place.</h1>
+    <p class="hero-desc">Tech, books, stationery & more — delivered to your dorm.</p>
+    <button class="hero-cta" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Shop Now ↓</button>
+  </div>
+  <div class="hero-shapes">
+    <div class="shape s1"></div>
+    <div class="shape s2"></div>
+    <div class="shape s3"></div>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<section class="filters-section" id="shop">
+  <div class="filters-header">
+    <h2>Browse Products</h2>
+    <p id="resultCount">Showing all products</p>
+  </div>
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterCategory('all', this)">All</button>
+    <button class="filter-btn" onclick="filterCategory('Electronics', this)">📱 Electronics</button>
+    <button class="filter-btn" onclick="filterCategory('Computers', this)">💻 Computers</button>
+    <button class="filter-btn" onclick="filterCategory('Audio', this)">🎧 Audio</button>
+    <button class="filter-btn" onclick="filterCategory('Stationery', this)">📝 Stationery</button>
+    <button class="filter-btn" onclick="filterCategory('Books', this)">📚 Books</button>
+    <button class="filter-btn" onclick="filterCategory('Accessories', this)">🎒 Accessories</button>
+  </div>
+</section>
+
+<!-- SORT -->
+<div class="sort-bar">
+  <label>Sort by:</label>
+  <select id="sortSelect" onchange="sortProducts()">
+    <option value="default">Featured</option>
+    <option value="price-asc">Price: Low to High</option>
+    <option value="price-desc">Price: High to Low</option>
+    <option value="name">Name A–Z</option>
+  </select>
+</div>
+
+<!-- PRODUCTS -->
+<div id="products" class="products-grid"></div>
+
+<!-- EMPTY STATE -->
+<div id="emptyState" class="empty-state" style="display:none">
+  <div class="empty-icon">🔍</div>
+  <h3>No products found</h3>
+  <p>Try a different search or category.</p>
+  <button onclick="resetSearch()">Clear Search</button>
+</div>
+
+<!-- CART SIDEBAR -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+<aside class="cart-sidebar" id="cartSidebar">
+  <div class="cart-header">
+    <h3>Your Cart 🛒</h3>
+    <button class="close-cart" onclick="toggleCart()">✕</button>
+  </div>
+  <div id="cartItems" class="cart-items">
+    <div class="cart-empty">Your cart is empty.<br>Add some products!</div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total">Total: <strong>ETB <span id="cartTotal">0</span></strong></div>
+    <button class="checkout-btn" onclick="openPayment()">Checkout →</button>
+  </div>
+</aside>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="payment-overlay" id="paymentOverlay">
+  <div class="payment-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closePayment()">✕</button>
+
+    <div class="payment-header">
+      <h3>💳 Choose Payment Method</h3>
+      <p>Complete your order by paying below</p>
+    </div>
+
+    <div class="payment-total-bar">
+      Total to Pay:
+      <strong>ETB <span id="paymentTotal">0</span></strong>
+    </div>
+
+    <div class="payment-tabs">
+      <button class="pay-tab active" onclick="switchPayTab('telebirr', this)">📱 Telebirr</button>
+      <button class="pay-tab" onclick="switchPayTab('cbe', this)">🏦 CBE Birr</button>
+    </div>
+
+    <!-- TELEBIRR -->
+    <div class="pay-method" id="pay-telebirr">
+      <div class="pay-card">
+        <div class="pay-logo telebirr-logo">📱 Telebirr</div>
+        <div class="pay-info-row">
+          <span class="pay-label">Account Name</span>
+          <span class="pay-value">Amanuel Abraham</span>
+        </div>
+        <div class="pay-info-row">
+          <span class="pay-label">Phone Number</span>
+          <div class="pay-copy-row">
+            <span class="pay-value">0923294397</span>
+            <button class="copy-btn" onclick="copyText('0923294397', this)">Copy</button>
+          </div>
+        </div>
+        <div class="pay-steps">
+          <p class="pay-steps-title">How to pay:</p>
+          <ol>
+            <li>Open your <strong>Telebirr</strong> app</li>
+            <li>Tap <strong>Send Money</strong></li>
+            <li>Enter number: <strong>0923294397</strong></li>
+            <li>Enter exact amount: <strong>ETB <span class="pay-amt">0</span></strong></li>
+            <li>Take a <strong>screenshot</strong> of confirmation</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- CBE -->
+    <div class="pay-method" id="pay-cbe" style="display:none">
+      <div class="pay-card">
+        <div class="pay-logo cbe-logo">🏦 CBE Birr</div>
+        <div class="pay-info-row">
+          <span class="pay-label">Account Name</span>
+          <span class="pay-value">Amanuel Abraham</span>
+        </div>
+        <div class="pay-info-row">
+          <span class="pay-label">Account Number</span>
+          <div class="pay-copy-row">
+            <span class="pay-value">1000653624321</span>
+            <button class="copy-btn" onclick="copyText('1000653624321', this)">Copy</button>
+          </div>
+        </div>
+        <div class="pay-steps">
+          <p class="pay-steps-title">How to pay:</p>
+          <ol>
+            <li>Open your <strong>CBE Birr</strong> app</li>
+            <li>Tap <strong>Transfer</strong></li>
+            <li>Enter account: <strong>1000653624321</strong></li>
+            <li>Enter exact amount: <strong>ETB <span class="pay-amt">0</span></strong></li>
+            <li>Take a <strong>screenshot</strong> of confirmation</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMER DETAILS + SCREENSHOT -->
+    <div class="pay-confirm-section">
+      <p class="pay-steps-title" style="margin-bottom:12px;">📋 Your Details</p>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Your Full Name *</label>
+        <input type="text" id="customerName" placeholder="e.g. Amanuel Abraham">
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Your Phone Number *</label>
+        <input type="text" id="customerPhone" placeholder="e.g. 0923294397">
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Payment Screenshot *</label>
+        <div class="screenshot-upload" onclick="document.getElementById('screenshotInput').click()">
+          <input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="previewScreenshot(this)">
+          <div id="screenshotPreview">
+            <span style="font-size:2rem">📸</span>
+            <p>Tap to upload your payment screenshot</p>
+          </div>
+        </div>
+      </div>
+      <p class="pay-note">⚠️ Fill in your details and upload your screenshot before confirming.</p>
+      <button class="confirm-pay-btn" onclick="confirmPayment()">✅ Confirm & Send Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div class="admin-login-overlay" id="adminLoginOverlay">
+  <div class="admin-login-box">
+    <div class="admin-login-icon">🔐</div>
+    <h3>Admin Access</h3>
+    <p>Enter your admin password to continue</p>
+    <input type="password" id="adminPasswordInput" placeholder="Admin password">
+    <p id="adminLoginError" class="admin-error" style="display:none">❌ Wrong password! Try again.</p>
+    <div class="admin-login-btns">
+      <button class="admin-cancel-btn" onclick="closeAdminLogin()">Cancel</button>
+      <button class="admin-confirm-btn" onclick="adminLogin()">Login →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-panel-overlay" id="adminPanelOverlay">
+  <div class="admin-panel-drawer" onclick="event.stopPropagation()">
+    <button class="admin-panel-close" onclick="closeAdminPanel()">✕</button>
+    <div id="adminPanelContent"></div>
+  </div>
+</div>
+
+<!-- PRODUCT FORM -->
+<div class="product-form-overlay" id="productFormOverlay">
+  <div class="product-form-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeProductForm()">✕</button>
+    <h3 id="productFormTitle">Add New Product</h3>
+    <input type="hidden" id="productFormId">
+    <div class="form-group">
+      <label>Product Name *</label>
+      <input type="text" id="productFormName" placeholder="e.g. iPhone 15">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Price (ETB) *</label>
+        <input type="number" id="productFormPrice" placeholder="e.g. 65000">
+      </div>
+      <div class="form-group">
+        <label>Category *</label>
+        <select id="productFormCategory">
+          <option>Electronics</option>
+          <option>Computers</option>
+          <option>Audio</option>
+          <option>Stationery</option>
+          <option>Books</option>
+          <option>Accessories</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Badge (optional)</label>
+      <input type="text" id="productFormBadge" placeholder="e.g. New, Hot, Required">
+    </div>
+    <div class="form-group">
+      <label>Image URL (optional)</label>
+      <input type="text" id="productFormImage" placeholder="https://... (leave blank for auto)">
+    </div>
+    <div class="form-group">
+      <label>Description *</label>
+      <textarea id="productFormDesc" placeholder="Describe the product..." rows="3"></textarea>
+    </div>
+    <button class="save-product-btn" onclick="saveProduct()">💾 Save Product</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="brand-icon">⚡</span> UniShop
+      <p>Your university's official online marketplace.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Quick Links</h4>
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Contact Us</a>
+      <a href="#">Return Policy</a>
+    </div>
+    <div class="footer-links">
+      <h4>Categories</h4>
+      <a href="#">Electronics</a>
+      <a href="#">Books</a>
+      <a href="#">Stationery</a>
+    </div>
+    <div class="footer-contact">
+      <h4>Contact</h4>
+      <p>📍 University Campus, Hawassa</p>
+      <p>📧 unishop@university.edu.et</p>
+      <p>📞 +251 923 294 397</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 UniShop. Built with ❤️ for university students.</p>
+  </div>
+</footer>
+
+<div id="loadingScreen" class="loading-screen"><div class="loading-spinner"></div><p>Loading UniShop...</p></div>
+
+// ── FIREBASE CONFIG ────────────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC740CZqY6IBZd0-YHLlnkWzHyx6BMm6mY",
+  authDomain: "unishop-29b24.firebaseapp.com",
+  databaseURL: "https://unishop-29b24-default-rtdb.firebaseio.com",
+  projectId: "unishop-29b24",
+  storageBucket: "unishop-29b24.firebasestorage.app",
+  messagingSenderId: "84327209356",
+  appId: "1:84327209356:web:a71c59d643aa4f8b895ea9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── STATE ──────────────────────────────────────────────
+let cart = [];
+let products = [];
+let currentFilter = 'all';
+let currentSearch = '';
+let isAdmin = false;
+
+// ── ADMIN PASSWORD ─────────────────────────────────────
+const ADMIN_PASSWORD = 'unishop@admin2025';
+
+// ── TELEGRAM CONFIG ────────────────────────────────────
+const TELEGRAM_TOKEN  = '8959402662:AAFJIC6vtshijasI-L8IrvZcapBtI4oXZAY';
+const TELEGRAM_CHAT_ID = '892403321';
+
+// ── DEFAULT PRODUCTS (only uploaded once) ─────────────
+const DEFAULT_PRODUCTS = [
+  { name: "iPhone 15",           price: 65000, category: "Electronics", rating: 4.8, reviews: 124, badge: "Hot",       image: "https://picsum.photos/300/220?random=1",  desc: "Latest Apple smartphone with A16 chip, 48MP camera, and all-day battery." },
+  { name: "HP Laptop 15",        price: 45000, category: "Computers",   rating: 4.6, reviews: 89,  badge: "Popular",   image: "https://picsum.photos/300/220?random=2",  desc: "Core i5 processor, 8GB RAM, 512GB SSD. Handles all your coursework." },
+  { name: "Bluetooth Speaker",   price: 2500,  category: "Audio",       rating: 4.3, reviews: 210, badge: "",           image: "https://picsum.photos/300/220?random=3",  desc: "Portable wireless speaker with 10-hour battery life." },
+  { name: "Samsung Galaxy A54",  price: 32000, category: "Electronics", rating: 4.5, reviews: 76,  badge: "New",       image: "https://picsum.photos/300/220?random=4",  desc: "5000mAh battery, 50MP camera, Super AMOLED display." },
+  { name: "Sony WH-1000XM5",    price: 18000, category: "Audio",       rating: 4.9, reviews: 54,  badge: "Top Rated",  image: "https://picsum.photos/300/220?random=5",  desc: "Industry-leading noise cancelling headphones." },
+  { name: "Dell Inspiron 15",   price: 52000, category: "Computers",   rating: 4.4, reviews: 61,  badge: "",           image: "https://picsum.photos/300/220?random=6",  desc: "Core i7, 16GB RAM, dedicated GPU for engineering students." },
+  { name: "Scientific Notebook", price: 150,  category: "Stationery",  rating: 4.2, reviews: 340, badge: "Budget",    image: "https://picsum.photos/300/220?random=7",  desc: "200-page hardcover notebook with graph paper." },
+  { name: "Pen Set (12pcs)",    price: 120,   category: "Stationery",  rating: 4.1, reviews: 512, badge: "",           image: "https://picsum.photos/300/220?random=8",  desc: "Smooth-writing ballpoint pens in assorted colors." },
+  { name: "Calculus Textbook",  price: 850,   category: "Books",       rating: 4.7, reviews: 95,  badge: "Required",  image: "https://picsum.photos/300/220?random=9",  desc: "Comprehensive calculus for science and engineering." },
+  { name: "Laptop Backpack",    price: 2200,  category: "Accessories", rating: 4.6, reviews: 188, badge: "",           image: "https://picsum.photos/300/220?random=10", desc: "Water-resistant 30L backpack with padded laptop sleeve." },
+  { name: "USB-C Hub 7-in-1",  price: 1800,  category: "Accessories", rating: 4.5, reviews: 143, badge: "New",       image: "https://picsum.photos/300/220?random=11", desc: "HDMI, USB 3.0 x3, SD card, Ethernet and PD charging." },
+  { name: "Data Structures",   price: 720,   category: "Books",       rating: 4.8, reviews: 67,  badge: "Required",  image: "https://picsum.photos/300/220?random=12", desc: "Essential algorithms and data structures with practical examples." },
+];
+
+// ── INIT — Load products from Firebase ─────────────────
+async function initApp() {
+  showLoadingScreen(true);
+  try {
+    const snapshot = await getDocs(collection(db, 'products'));
+    if (snapshot.empty) {
+      // First time — upload default products to Firebase
+      for (const p of DEFAULT_PRODUCTS) {
+        await addDoc(collection(db, 'products'), p);
+      }
+    }
+    // Listen for real-time updates
+    onSnapshot(collection(db, 'products'), (snap) => {
+      products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      applySortAndDisplay();
+    });
+  } catch (e) {
+    console.error(e);
+    showToast('⚠️ Could not load products. Check internet connection.');
+  }
+  showLoadingScreen(false);
+}
+
+function showLoadingScreen(show) {
+  document.getElementById('loadingScreen').style.display = show ? 'flex' : 'none';
+}
+
+// ── RENDER STARS ───────────────────────────────────────
+function renderStars(rating) {
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
+  let stars = '';
+  for (let i = 0; i < full; i++) stars += '<span class="star full">★</span>';
+  if (half) stars += '<span class="star half">★</span>';
+  for (let i = full + (half ? 1 : 0); i < 5; i++) stars += '<span class="star empty">★</span>';
+  return stars;
+}
+
+// ── DISPLAY PRODUCTS ───────────────────────────────────
+function displayProducts(list) {
+  const grid  = document.getElementById('products');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('resultCount');
+
+  if (!list || list.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    count.textContent = 'No products found';
+    return;
+  }
+
+  empty.style.display = 'none';
+  count.textContent = `Showing ${list.length} product${list.length !== 1 ? 's' : ''}`;
+
+  grid.innerHTML = list.map((p, i) => `
+    <div class="card" style="animation-delay:${i * 0.06}s" onclick="openModal('${p.id}')">
+      ${p.badge ? `<span class="badge badge-${p.badge.toLowerCase().replace(' ','-')}">${p.badge}</span>` : ''}
+      ${isAdmin ? `
+        <div class="admin-card-actions">
+          <button onclick="event.stopPropagation(); openEditProduct('${p.id}')" title="Edit">✏️</button>
+          <button onclick="event.stopPropagation(); deleteProduct('${p.id}', '${p.name}')" title="Delete">🗑</button>
+        </div>` : ''}
+      <div class="card-img-wrap">
+        <img src="${p.image}" alt="${p.name}" loading="lazy">
+      </div>
+      <div class="card-body">
+        <span class="card-cat">${p.category}</span>
+        <h3 class="card-name">${p.name}</h3>
+        <div class="card-rating">
+          ${renderStars(p.rating)}
+          <span class="rating-val">${p.rating}</span>
+          <span class="rating-count">(${p.reviews})</span>
+        </div>
+        <p class="card-price">ETB ${p.price.toLocaleString()}</p>
+        <button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}')">
+          <span>Add to Cart</span> <span>+</span>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── FILTERING ──────────────────────────────────────────
+function getFiltered() {
+  return products.filter(p => {
+    const matchCat  = currentFilter === 'all' || p.category === currentFilter;
+    const matchSrch = p.name.toLowerCase().includes(currentSearch) ||
+                      p.category.toLowerCase().includes(currentSearch) ||
+                      p.desc.toLowerCase().includes(currentSearch);
+    return matchCat && matchSrch;
+  });
+}
+
+function filterCategory(cat, btn) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  applySortAndDisplay();
+  document.getElementById('shop').scrollIntoView({ behavior: 'smooth' });
+}
+
+function searchProduct() {
+  currentSearch = document.getElementById('searchInput').value.toLowerCase().trim();
+  applySortAndDisplay();
+}
+
+function resetSearch() {
+  document.getElementById('searchInput').value = '';
+  currentSearch = '';
+  currentFilter = 'all';
+  document.querySelectorAll('.filter-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  applySortAndDisplay();
+}
+
+function sortProducts() { applySortAndDisplay(); }
+
+function applySortAndDisplay() {
+  let list = [...getFiltered()];
+  const sort = document.getElementById('sortSelect').value;
+  if (sort === 'price-asc')  list.sort((a,b) => a.price - b.price);
+  if (sort === 'price-desc') list.sort((a,b) => b.price - a.price);
+  if (sort === 'name')       list.sort((a,b) => a.name.localeCompare(b.name));
+  displayProducts(list);
+}
+
+// ── CART ───────────────────────────────────────────────
+function addToCart(id) {
+  const product = products.find(p => p.id === id);
+  const existing = cart.find(i => i.id === id);
+  if (existing) { existing.qty++; }
+  else { cart.push({ ...product, qty: 1 }); }
+  updateCartUI();
+  showToast(`✅ ${product.name} added to cart!`);
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  updateCartUI();
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const count = cart.reduce((sum, i) => sum + i.qty, 0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotal').textContent = total.toLocaleString();
+  const itemsEl = document.getElementById('cartItems');
+  if (cart.length === 0) {
+    itemsEl.innerHTML = '<div class="cart-empty">Your cart is empty.<br>Add some products!</div>';
+    return;
+  }
+  itemsEl.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <img src="${item.image}" alt="${item.name}">
+      <div class="cart-item-info">
+        <p class="cart-item-name">${item.name}</p>
+        <p class="cart-item-price">ETB ${(item.price * item.qty).toLocaleString()}</p>
+        <div class="qty-controls">
+          <button onclick="changeQty('${item.id}', -1)">−</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty('${item.id}', 1)">+</button>
+        </div>
+      </div>
+      <button class="remove-btn" onclick="removeFromCart('${item.id}')">🗑</button>
+    </div>
+  `).join('');
+}
+
+function toggleCart() {
+  document.getElementById('cartSidebar').classList.toggle('open');
+  document.getElementById('cartOverlay').classList.toggle('open');
+}
+
+// ── PRODUCT MODAL ──────────────────────────────────────
+function openModal(id) {
+  const p = products.find(pr => pr.id === id);
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-product">
+      <img src="${p.image}" alt="${p.name}">
+      <div class="modal-info">
+        <span class="card-cat">${p.category}</span>
+        <h2>${p.name}</h2>
+        <div class="card-rating" style="margin:8px 0">
+          ${renderStars(p.rating)}
+          <span class="rating-val">${p.rating}</span>
+          <span class="rating-count">(${p.reviews} reviews)</span>
+        </div>
+        <p class="modal-desc">${p.desc}</p>
+        <p class="modal-price">ETB ${p.price.toLocaleString()}</p>
+        <button class="add-btn" style="width:100%;padding:14px" onclick="addToCart('${p.id}'); closeModal()">
+          <span>Add to Cart</span> <span>+</span>
+        </button>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// ── TOAST ──────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════════════════
+// ── PAYMENT SYSTEM ────────────────────────────────────
+// ══════════════════════════════════════════════════════
+
+function openPayment() {
+  if (cart.length === 0) { showToast('⚠️ Your cart is empty!'); return; }
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  document.getElementById('paymentTotal').textContent = total.toLocaleString();
+  document.querySelectorAll('.pay-amt').forEach(el => el.textContent = total.toLocaleString());
+  document.getElementById('cartSidebar').classList.remove('open');
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.getElementById('customerName').value = '';
+  document.getElementById('customerPhone').value = '';
+  document.getElementById('screenshotInput').value = '';
+  document.getElementById('screenshotPreview').innerHTML = '<span style="font-size:2rem">📸</span><p>Tap to upload your payment screenshot</p>';
+  document.getElementById('paymentOverlay').classList.add('open');
+}
+
+function closePayment() {
+  document.getElementById('paymentOverlay').classList.remove('open');
+}
+
+function switchPayTab(method, btn) {
+  document.querySelectorAll('.pay-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.pay-method').forEach(m => m.style.display = 'none');
+  document.getElementById('pay-' + method).style.display = 'block';
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ Copied!';
+    btn.style.background = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'Copy'; btn.style.background = ''; }, 2000);
+  }).catch(() => { showToast('📋 ' + text); });
+}
+
+function previewScreenshot(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('screenshotPreview').innerHTML = `
+      <img src="${e.target.result}" style="width:100%;border-radius:8px;max-height:180px;object-fit:contain;">
+      <p style="margin-top:6px;color:var(--green);font-size:0.82rem;">✅ Screenshot ready!</p>
+    `;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function confirmPayment() {
+  const name  = document.getElementById('customerName').value.trim();
+  const phone = document.getElementById('customerPhone').value.trim();
+  const file  = document.getElementById('screenshotInput').files[0];
+  const activeTab = document.querySelector('.pay-tab.active').textContent.trim();
+
+  if (!name)  { showToast('⚠️ Please enter your full name!'); return; }
+  if (!phone) { showToast('⚠️ Please enter your phone number!'); return; }
+  if (!file)  { showToast('⚠️ Please upload your payment screenshot!'); return; }
+
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const items = cart.map(i => `• ${i.name} x${i.qty} = ETB ${(i.price * i.qty).toLocaleString()}`).join('\n');
+
+  const btn = document.querySelector('.confirm-pay-btn');
+  btn.textContent = '⏳ Sending order...';
+  btn.disabled = true;
+
+  try {
+    const message =
+`🛒 NEW ORDER — UniShop
+
+👤 Customer: ${name}
+📞 Phone: ${phone}
+💳 Payment: ${activeTab}
+
+📦 Items:
+${items}
+
+💰 Total: ETB ${total.toLocaleString()}
+
+Please verify the payment screenshot below!`;
+
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message })
+    });
+
+    const formData = new FormData();
+    formData.append('chat_id', TELEGRAM_CHAT_ID);
+    formData.append('photo', file);
+    formData.append('caption', `📸 Payment screenshot from ${name} (${phone})`);
+
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`, {
+      method: 'POST',
+      body: formData
+    });
+
+    closePayment();
+    cart = [];
+    updateCartUI();
+    showOrderSuccess(name, total, items);
+
+  } catch (err) {
+    btn.textContent = '✅ Confirm & Send Order';
+    btn.disabled = false;
+    showToast('⚠️ Network error. Please try again!');
+  }
+}
+
+function showOrderSuccess(name, total, items) {
+  document.getElementById('modalContent').innerHTML = `
+    <div style="text-align:center; padding:40px 28px;">
+      <div style="font-size:4rem; margin-bottom:16px;">🎉</div>
+      <h2 style="font-family:var(--font-head); font-size:1.5rem; margin-bottom:10px;">Order Sent!</h2>
+      <p style="color:var(--text-soft); margin-bottom:20px; line-height:1.7;">
+        Thank you <strong>${name}</strong>!<br>
+        Your order has been sent to the admin.<br>
+        We will contact you within <strong>30 minutes</strong>.
+      </p>
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:24px; text-align:left;">
+        <p style="font-size:0.75rem; color:var(--text-soft); margin-bottom:8px; letter-spacing:1px;">ORDER SUMMARY</p>
+        <pre style="font-size:0.85rem; white-space:pre-wrap; font-family:var(--font-body); margin-bottom:10px;">${items}</pre>
+        <p style="font-family:var(--font-head); font-size:1.2rem; color:var(--accent); font-weight:800;">Total: ETB ${total.toLocaleString()}</p>
+      </div>
+      <button class="add-btn" style="width:100%; padding:14px; justify-content:center;" onclick="closeModal()">Continue Shopping</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+// ══════════════════════════════════════════════════════
+// ── ADMIN SYSTEM ──────────────────────────────────────
+// ══════════════════════════════════════════════════════
+
+let logoTaps = 0;
+let tapTimer = null;
+
+function onLogoBrandTap() {
+  logoTaps++;
+  clearTimeout(tapTimer);
+  tapTimer = setTimeout(() => { logoTaps = 0; }, 2000);
+  if (logoTaps >= 5) {
+    logoTaps = 0;
+    if (isAdmin) { openAdminPanel(); }
+    else {
+      document.getElementById('adminLoginOverlay').classList.add('open');
+      document.getElementById('adminPasswordInput').focus();
+    }
+  }
+}
+
+function adminLogin() {
+  const pwd = document.getElementById('adminPasswordInput').value;
+  if (pwd === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('adminLoginOverlay').classList.remove('open');
+    document.getElementById('adminPasswordInput').value = '';
+    document.getElementById('adminBadge').style.display = 'inline-flex';
+    showToast('🔐 Admin mode activated!');
+    applySortAndDisplay();
+    openAdminPanel();
+  } else {
+    document.getElementById('adminLoginError').style.display = 'block';
+    document.getElementById('adminPasswordInput').value = '';
+    setTimeout(() => document.getElementById('adminLoginError').style.display = 'none', 2500);
+  }
+}
+
+function adminLogout() {
+  isAdmin = false;
+  document.getElementById('adminBadge').style.display = 'none';
+  closeAdminPanel();
+  applySortAndDisplay();
+  showToast('👋 Logged out of admin mode.');
+}
+
+function closeAdminLogin() {
+  document.getElementById('adminLoginOverlay').classList.remove('open');
+  document.getElementById('adminPasswordInput').value = '';
+}
+
+function openAdminPanel() {
+  renderAdminPanel();
+  document.getElementById('adminPanelOverlay').classList.add('open');
+}
+
+function closeAdminPanel() {
+  document.getElementById('adminPanelOverlay').classList.remove('open');
+}
+
+function renderAdminPanel() {
+  const totalValue = products.reduce((s, p) => s + p.price, 0);
+  const categories = [...new Set(products.map(p => p.category))].length;
+
+  document.getElementById('adminPanelContent').innerHTML = `
+    <div class="admin-panel">
+      <div class="admin-header">
+        <div>
+          <h2>🔐 Admin Panel</h2>
+          <p>Welcome back, Amanuel!</p>
+        </div>
+        <button class="admin-logout-btn" onclick="adminLogout()">Logout →</button>
+      </div>
+      <div class="admin-stats">
+        <div class="stat-card">
+          <span class="stat-icon">📦</span>
+          <div><p class="stat-num">${products.length}</p><p class="stat-label">Products</p></div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">🗂</span>
+          <div><p class="stat-num">${categories}</p><p class="stat-label">Categories</p></div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-icon">💰</span>
+          <div><p class="stat-num">ETB ${totalValue.toLocaleString()}</p><p class="stat-label">Stock Value</p></div>
+        </div>
+      </div>
+      <div class="admin-section-header">
+        <h3>All Products</h3>
+        <button class="add-product-btn" onclick="openAddProduct()">+ Add Product</button>
+      </div>
+      <div class="admin-product-list">
+        ${products.map(p => `
+          <div class="admin-product-row">
+            <img src="${p.image}" alt="${p.name}">
+            <div class="admin-product-info">
+              <p class="admin-product-name">${p.name}</p>
+              <p class="admin-product-meta">${p.category} · ETB ${p.price.toLocaleString()}</p>
+            </div>
+            <div class="admin-product-btns">
+              <button class="edit-btn" onclick="closeAdminPanel(); openEditProduct('${p.id}')">✏️</button>
+              <button class="delete-btn" onclick="deleteProduct('${p.id}', '${p.name}')">🗑</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ── ADD PRODUCT ────────────────────────────────────────
+function openAddProduct() {
+  document.getElementById('productFormTitle').textContent = '➕ Add New Product';
+  document.getElementById('productFormId').value = '';
+  document.getElementById('productFormName').value = '';
+  document.getElementById('productFormPrice').value = '';
+  document.getElementById('productFormCategory').value = 'Electronics';
+  document.getElementById('productFormBadge').value = '';
+  document.getElementById('productFormImage').value = '';
+  document.getElementById('productFormDesc').value = '';
+  closeAdminPanel();
+  document.getElementById('productFormOverlay').classList.add('open');
+}
+
+function openEditProduct(id) {
+  const p = products.find(pr => pr.id === id);
+  document.getElementById('productFormTitle').textContent = '✏️ Edit Product';
+  document.getElementById('productFormId').value = p.id;
+  document.getElementById('productFormName').value = p.name;
+  document.getElementById('productFormPrice').value = p.price;
+  document.getElementById('productFormCategory').value = p.category;
+  document.getElementById('productFormBadge').value = p.badge || '';
+  document.getElementById('productFormImage').value = p.image;
+  document.getElementById('productFormDesc').value = p.desc;
+  document.getElementById('productFormOverlay').classList.add('open');
+}
+
+function closeProductForm() {
+  document.getElementById('productFormOverlay').classList.remove('open');
+}
+
+async function saveProduct() {
+  const id       = document.getElementById('productFormId').value;
+  const name     = document.getElementById('productFormName').value.trim();
+  const price    = parseInt(document.getElementById('productFormPrice').value);
+  const category = document.getElementById('productFormCategory').value;
+  const badge    = document.getElementById('productFormBadge').value.trim();
+  const image    = document.getElementById('productFormImage').value.trim() || `https://picsum.photos/300/220?random=${Date.now()}`;
+  const desc     = document.getElementById('productFormDesc').value.trim();
+
+  if (!name || !price || !desc) { showToast('⚠️ Please fill all required fields!'); return; }
+
+  const btn = document.querySelector('.save-product-btn');
+  btn.textContent = '⏳ Saving...';
+  btn.disabled = true;
+
+  try {
+    if (id) {
+      // Update existing in Firebase
+      await updateDoc(doc(db, 'products', id), { name, price, category, badge, image, desc });
+      showToast(`✅ "${name}" updated!`);
+    } else {
+      // Add new to Firebase
+      await addDoc(collection(db, 'products'), { name, price, category, badge, image, desc, rating: 4.5, reviews: 0 });
+      showToast(`✅ "${name}" added for everyone!`);
+    }
+    closeProductForm();
+  } catch (e) {
+    showToast('⚠️ Error saving. Check internet!');
+  }
+
+  btn.textContent = '💾 Save Product';
+  btn.disabled = false;
+}
+
+async function deleteProduct(id, name) {
+  if (confirm(`Delete "${name}"? This cannot be undone.`)) {
+    try {
+      await deleteDoc(doc(db, 'products', id));
+      showToast(`🗑 "${name}" deleted for everyone!`);
+      if (document.getElementById('adminPanelOverlay').classList.contains('open')) renderAdminPanel();
+    } catch(e) {
+      showToast('⚠️ Error deleting. Check internet!');
+    }
+  }
+}
+
+// ── KEYBOARD SHORTCUTS ─────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal(); closeAdminLogin();
+    closeAdminPanel(); closeProductForm(); closePayment();
+  }
+  if (e.key === 'Enter' && document.getElementById('adminLoginOverlay').classList.contains('open')) {
+    adminLogin();
+  }
+});
+
+// ── START ──────────────────────────────────────────────
+initApp();
+
+</script>
+<script src="script.js"></script>
+</body>
+</html>
